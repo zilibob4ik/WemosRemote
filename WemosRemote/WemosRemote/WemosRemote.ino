@@ -40,6 +40,8 @@ AudioFileSourceSPIFFS *file;
 AudioOutputI2SNoDAC *out;
 AudioFileSourceID3 *id3;
 
+#include "mp3.h"
+
 #define pinServo D5
 #define pinMotorA D7//назад
 #define pinMotorB D6//вперед
@@ -50,6 +52,9 @@ AudioFileSourceID3 *id3;
 #define pinStopLight D8
 #define pinParkingLight D0
 #define pinBuzzer RX
+
+String signals [10] = { "/alarm.mp3", "/alarm.mp3", "/3.mp3", "/4.mp3", "/5.mp3", "/6.mp3", "/7.mp3", "/8.mp3", "/9.mp3", "/10.mp3" };
+
 
 
 // Called when a metadata event occurs (i.e. an ID3 tag, an ICY block, etc.
@@ -368,13 +373,17 @@ void setup()
   //Serial.println();
  SPIFFS.begin();
 
+/*
    file = new AudioFileSourceSPIFFS("/alarm.mp3");
   id3 = new AudioFileSourceID3(file);
   id3->RegisterMetadataCB(MDCallback, (void*)"ID3TAG");
   out = new AudioOutputI2SNoDAC();
   mp3 = new AudioGeneratorMP3();
   mp3->begin(id3, out);
-  
+*/
+initMP3(); //инициализируем библиотеку МП3
+
+
   console.output = &Serial;
   analogWriteRange(255);
   String s;
@@ -437,6 +446,8 @@ void setup()
   webServer.apName = String(SSID);
 
   setupController.reloadConfig = &refreshConfig;
+  
+  mp3PlayTrack( signals[0].c_str()); //Воспроизводим сигнал
 }
 
 
@@ -457,12 +468,12 @@ int mapSpeed(int speed) {
 
 void loop()
 {
-    if (mp3->isRunning()) {
-    if (!mp3->loop()) mp3->stop(); 
-  } else {
-    Serial.printf("MP3 done\n");
-    delay(1000);
-  }
+    if (mp3->isRunning()) {if (!mp3->loop()) mp3->stop();  } //else {  Serial.printf("MP3 done\n");  delay(1000); }
+
+// mp3PlayTrack( signals[0].c_str()); //Воспроизводим сигнал
+
+
+
 RemoteXY_Handler(); //под вопросом
 
   stearingServo.max_left = config.max_left;
